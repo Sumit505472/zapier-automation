@@ -1,0 +1,68 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User{
+  id       Int @id @default(autoincrement())
+  name     String
+  email    String @unique
+  password String
+
+
+}
+
+model Zap{
+  id         String @id @default(uuid())
+  triggerId  String 
+  trigger    Trigger?
+  actions    Action[]
+  zapRuns    ZapRun[]
+}
+model Trigger{
+  id    String @id @default(uuid())
+  zapId String @unique
+  triggerId String
+  type  AvailableTrigger @relation(fields:[triggerId], references:[id])
+  zap  Zap  @relation(fields:[zapId], references:[id])
+
+}
+model Action{
+  id   String @id @default(uuid())
+  zapId String
+  zap   Zap  @relation(fields:[zapId], references:[id])
+  actionId String
+  type AvailableAction @relation(fields:[actionId], references:[id])
+}
+
+model AvailableTrigger{
+  id   String @id @default(uuid())
+  name String
+  trigger Trigger[]
+}
+model AvailableAction{
+  id   String @id @default(uuid())
+  name String
+  action Action[]
+}
+model ZapRun{
+  id String @id @default (uuid())
+  zapId String
+  metaData Json
+  zap   Zap @relation (fields:[zapId], references:[id])
+  ZapRunOutbox ZapRunOutbox?
+}
+model ZapRunOutbox{
+  id String @id @default (uuid())
+  zapRunId String @unique
+  zapRun ZapRun @relation (fields:[zapRunId], references:[id])
+}
